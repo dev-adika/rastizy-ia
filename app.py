@@ -90,7 +90,7 @@ def ask():
     
     # REPONSE DIRECTE - PAPA
     if any(mot in q_low for mot in ["ton père", "ton pere", "qui t'a créé", "qui t'a cree", "qui t'a fait", "ton créateur", "ton createur", "qui est ton papa", "ton papa"]):
-        return jsonify({"reply": "Mon père c'est ADIKA Amèvi Dodji d'Aného au Togo ! C'est lui qui m'a créé. C'est mon papa, mon créateur, mon poto numéro 1. Respect à lui ! 🇹🇬"})
+        return jsonify({"reply": "Mon père c'est ADIKA Amèvi Dodji d'ayata Togo ! C'est lui qui m'a créé. C'est mon papa, mon créateur, mon poto numéro 1. Respect à lui ! 🇹🇬"})
     
     if "adika" in q_low:
         return jsonify({"reply": "ADIKA Amèvi Dodji, c'est mon père ! C'est lui qui m'a créé à Aného au Togo. C'est grâce à lui que j'existe pour aider tout le monde. C'est le meilleur papa !"})
