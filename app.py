@@ -1,6 +1,6 @@
-
 from flask import Flask, request, jsonify, render_template_string
-import requests, urllib.parse, time
+import os
+import requests
 
 app = Flask(__name__)
 
@@ -8,66 +8,79 @@ HTML = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAStizy_IA - Le Prof IA du Togo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAStizy_IA - Par ADIKA</title>
 <style>
-*{box-sizing:border-box}
-body{font-family:Arial;background:#FFF7ED;margin:0}
-header{background:#EA580C;color:white;padding:20px;text-align:center}
-header h1{margin:0}
-.container{max-width:750px;margin:auto;padding:15px}
-.bac{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin:15px 0}
-.bac button{padding:12px 5px;border:none;border-radius:12px;background:white;box-shadow:0 2px 5px #ddd;font-weight:bold;cursor:pointer;font-size:13px}
-.bac button.active{background:#EA580C;color:white}
-.box{background:white;padding:18px;border-radius:18px;box-shadow:0 0 15px #ddd}
-textarea{width:100%;height:75px;padding:12px;border-radius:12px;border:1.5px solid #FDBA74;font-size:16px}
-.btn-main{width:100%;padding:15px;background:#EA580C;color:white;border:none;border-radius:12px;font-size:18px;font-weight:bold;margin-top:10px}
-.btn-voice{width:100%;padding:12px;background:#16A34A;color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold;margin-top:8px}
-#reponse{margin-top:15px;background:#FFFBEB;padding:15px;border-radius:12px;white-space:pre-wrap;min-height:100px;line-height:1.6}
-.footer{text-align:center;color:#888;font-size:13px;margin:20px}
+body{font-family:Arial;background:#0f3d1e;color:white;text-align:center;padding:15px;margin:0}
+.card{background:white;color:#111;border-radius:20px;padding:20px;max-width:500px;margin:auto}
+textarea{width:95%;height:100px;border-radius:10px;padding:10px;font-size:16px;border:2px solid #0f3d1e}
+button{background:black;color:#00ff66;border:none;padding:14px 20px;border-radius:12px;font-size:17px;font-weight:bold;width:95%;margin-top:10px;cursor:pointer}
+.btn-voice{background:#222;color:white}
+.rep{background:#eaffef;border-left:5px solid #00cc66;padding:12px;border-radius:10px;margin-top:15px;text-align:left;min-height:60px;white-space:pre-wrap}
+.quiz-btn{background:#00e676;color:black;padding:12px 20px;border-radius:20px;font-weight:bold;border:none;font-size:16px}
 </style>
 </head>
 <body>
-<header><h1>🇹🇬 RAStizy_IA</h1><p>Le Prof IA du Togo - Créé par ADIKA Amèvi Dodji</p></header>
-<div class="container">
-<div class="bac">
-<button onclick="setMatiere(this,'Maths')">📐 Maths</button>
-<button onclick="setMatiere(this,'Physique')">⚗️ Physique</button>
-<button onclick="setMatiere(this,'SVT')">🧬 SVT</button>
-<button onclick="setMatiere(this,'Français')">📖 Français</button>
-<button onclick="setMatiere(this,'Philosophie')">🤔 Philo</button>
-<button onclick="setMatiere(this,'Histoire-Géo')">🌍 Hist-Géo</button>
-<button onclick="setMatiere(this,'Anglais')">🇬🇧 Anglais</button>
-<button onclick="setMatiere(this,'Allemand')">🇩🇪 Allemand</button>
+<h1>🔥 RAStizy_IA 🔥</h1>
+<p>Créé par <b>ADIKA Amèvi Dodji</b> d'Aného au Togo 🇹🇬</p>
+
+<div class="card">
+<p><b>Ecris tout ici poto, RAStizy comprend tout !</b><br><br>
+Exemples :<br>
+- Traduis en Allemand : Je t'aime<br>
+- Corrige : Je suis aller a l'école<br>
+- Fiche BAC : Maths + Suites</p>
+
+<textarea id="q" placeholder="Ex: C'est qui ton père ?"></textarea><br>
+<button onclick="ask()">🚀 Demander a RAStizy_IA</button>
+<button class="btn-voice" onclick="speak()">🔊 Écouter la réponse</button>
+
+<div class="rep" id="rep">Ta réponse va s'afficher ici...</div>
+
+<p>💡 <b>Tu peux ecrire :</b><br>
+🌍 Traduis en Anglais / Francais / Allemand / Espagnol / Ewe<br>
+✍️ Corrige : ton texte avec fautes<br>
+🎓 Fiche BAC : Matiere + Chapitre<br>
+📚 Resume : colle ton cours<br>
+🧠 Explique-moi : n'importe quelle notion<br>
+💬 Question : n'importe quelle question de cours</p>
+
+<hr>
+<h2>🎯 Quiz BAC rapide</h2>
+<button class="quiz-btn" onclick="quiz()">🎯 Lancer un Quiz</button>
+<div class="rep" id="quizBox" style="display:none"></div>
+
 </div>
-<div class="box">
-<textarea id="q" placeholder="Pose ta question ici..."></textarea>
-<button class="btn-main" onclick="demander()">✨ Demander à RAStizy_IA</button>
-<button class="btn-voice" onclick="lire()">🔊 Écouter la réponse</button>
-<div id="reponse">Pose ta question poto...</div>
-</div>
-<p class="footer">Créé à Aného, Togo 🇹🇬 par ADIKA Amèvi Dodji - Pour tout le monde</p>
-</div>
+<p style="margin-top:15px">RAStizy_IA - Made in Togo 🇹🇬 | Une seule case, tout faire !</p>
+
 <script>
-let matiere = "Cours général";
-function setMatiere(btn, m){ matiere = m; document.querySelectorAll('.bac button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
-async function demander(){
-  let q = document.getElementById('q').value;
-  let r = document.getElementById('reponse');
-  if(!q){ r.innerText = "Écris d'abord ta question poto !"; return; }
-  r.innerText = "RAStizy réfléchit... attends un peu poto...";
+let last = "";
+async function ask(){
+  let q = document.getElementById('q').value.trim();
+  if(!q) return alert('Ecris quelque chose poto');
+  document.getElementById('rep').innerText = 'RAStizy réfléchit...';
   try{
-    let res = await fetch('/ask', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: q, matiere: matiere})});
-    let data = await res.json();
-    r.innerText = data.reply;
-  }catch(e){ r.innerText = "Oups, réessaie poto."; }
+    let r = await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q})});
+    let d = await r.json();
+    last = d.rep;
+    document.getElementById('rep').innerText = last;
+  }catch(e){
+    document.getElementById('rep').innerText = 'Poto, réessaie, la connexion a coupé.';
+  }
 }
-function lire(){
-  let texte = document.getElementById('reponse').innerText;
-  window.speechSynthesis.cancel();
-  let voix = new SpeechSynthesisUtterance(texte);
-  voix.lang = 'fr-FR'; window.speechSynthesis.speak(voix);
+function speak(){
+  if(!last) return alert('Demande d’abord poto');
+  let u = new SpeechSynthesisUtterance(last);
+  u.lang = 'fr-FR';
+  speechSynthesis.speak(u);
+}
+async function quiz(){
+  document.getElementById('quizBox').style.display='block';
+  document.getElementById('quizBox').innerText='Chargement du Quiz...';
+  let r = await fetch('/quiz');
+  let d = await r.json();
+  document.getElementById('quizBox').innerHTML = '<b>Question :</b><br>'+d.q+'<br><br><button onclick="alert(\\''+d.rep+'\\')">Voir la réponse</button>';
 }
 </script>
 </body>
@@ -81,34 +94,33 @@ def home():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.get_json() or {}
-    question = data.get('message') or ""
-    matiere = data.get('matiere') or "Cours général"
-    if not question:
-        return jsonify({"reply": "Pose-moi une question poto !"})
-    
-    q_low = question.lower()
-    
-    # REPONSE DIRECTE - PAPA
-    if any(mot in q_low for mot in ["ton père", "ton pere", "qui t'a créé", "qui t'a cree", "qui t'a fait", "ton créateur", "ton createur", "qui est ton papa", "ton papa"]):
-        return jsonify({"reply": "Mon père c'est ADIKA Amèvi Dodji d'ayata Togo ! C'est lui qui m'a créé. C'est mon papa, mon créateur, mon poto numéro 1. Respect à lui ! 🇹🇬"})
-    
-    if "adika" in q_low:
-        return jsonify({"reply": "ADIKA Amèvi Dodji, c'est mon père ! C'est lui qui m'a créé à Aného au Togo. C'est grâce à lui que j'existe pour aider tout le monde. C'est le meilleur papa !"})
-    
-    if any(mot in q_low for mot in ["qui es-tu", "qui es tu", "tu t'appelles", "ton nom", "c'est quoi ton nom"]):
-        return jsonify({"reply": "Moi c'est RAStizy_IA ! Le Prof IA du Togo. Mon père c'est ADIKA Amèvi Dodji d'Aného. Je suis là pour t'aider en Maths, Physique, SVT, Français, Philo, tout ! Pose-moi ta question poto !"})
+    q = data.get('q','')
+    q_low = q.lower()
 
-    prompt = f"Tu es RAStizy_IA, prof IA du Togo pour tout le monde. Ton père est ADIKA Amèvi Dodji. Tu ne poses JAMAIS de quiz, JAMAIS d'exercice à la fin. Tu ne dis JAMAIS que tu es créé par OpenAI. Matière: {matiere}. Parle français simple. Question: {question}"
-    url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
-    for essai in range(3):
-        try:
-            res = requests.get(url, timeout=90)
-            if res.status_code == 200 and len(res.text) > 10:
-                return jsonify({"reply": res.text})
-            time.sleep(3)
-        except:
-            time.sleep(3)
-    return jsonify({"reply": "Attends 20 secondes et repose ta question poto, Pollinations est chargé."})
+    # 1. REPONSES LOCALES - SANS POLLINATIONS, TOUJOURS MARCHE
+    if "ton père" in q_low or "ton pere" in q_low or "qui t'a créé" in q_low or "qui t'a cree" in q_low or "ton createur" in q_low or "ton créateur" in q_low:
+        return jsonify({'rep': "Mon père, mon créateur, c'est ADIKA Amèvi Dodji d'Aného au Togo. C'est lui qui m'a créé, c'est mon père !"})
+    if "qui es-tu" in q_low or "qui es tu" in q_low or "tu es qui" in q_low or "ton nom" in q_low or "c'est qui rastizy" in q_low:
+        return jsonify({'rep': "Je suis RAStizy_IA ! Le Prof IA du Togo. Mon père, mon créateur, c'est ADIKA Amèvi Dodji d'Aného."})
+    if "bonjour" in q_low or "salut" in q_low or "yo " in q_low:
+        return jsonify({'rep': "Salut poto ! C'est RAStizy, créé par ADIKA Amèvi Dodji. Dis-moi ce que tu veux : Traduis, Corrige, Fiche BAC, Résumé, Explique-moi. Je gère tout !"})
+
+    # 2. SINON ON APPELLE POLLINATIONS
+    try:
+        prompt = f"Tu es RAStizy_IA, un prof IA du Togo, créé par ADIKA Amèvi Dodji d'Aného. Réponds en français simple, comme un poto, clair et court. Question de l'élève : {q}"
+        url = "https://text.pollinations.ai/" + requests.utils.quote(prompt)
+        r = requests.get(url, timeout=25)
+        if r.status_code == 200 and r.text.strip():
+            return jsonify({'rep': r.text.strip()})
+        else:
+            return jsonify({'rep': "Poto, Pollinations est fatigué. Repose ta question dans 20 secondes, ça va marcher."})
+    except Exception as e:
+        return jsonify({'rep': "Poto, la connexion a coupé. Repose ta question, je suis là. Si c'est pour ton père, demande : C'est qui ton père ?"})
+
+@app.route('/quiz')
+def quiz():
+    return jsonify({'q': "Quelle est la capitale du Togo ? A) Lomé B) Aného C) Kara", 'rep': "La réponse est A) Lomé poto !"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
