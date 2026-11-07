@@ -8,6 +8,7 @@ HTML = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script src="https://cdn.counter.dev/script.js" data-id="b8b9f976-5f00-46b8-a3ae-f1bc6f64e648" data-utcoffset="0"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RAStizy_IA - Par ADIKA</title>
